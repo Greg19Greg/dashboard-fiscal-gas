@@ -74,12 +74,12 @@ h1 {
 <div id="home">
   <h1>Dashboard Fiscal de Gas</h1>
 
-  <button class="station-btn" onclick="openStation('E-01')">Estación E-01</button>
-  <button class="station-btn" onclick="openStation('E-02')">Estación E-02</button>
-  <button class="station-btn" onclick="openStation('E-03')">Estación E-03</button>
-  <button class="station-btn" onclick="openStation('E-04')">Estación E-04</button>
-  <button class="station-btn" onclick="openStation('E-05')">Estación E-05</button>
-  <button class="station-btn" onclick="openStation('E-06')">Estación E-06</button>
+  <button class="station-btn" onclick="openStation('EF- Muri')">EF- Muri</button>
+  <button class="station-btn" onclick="openStation('EF- Musipan')">EF- Musipan</button>
+  <button class="station-btn" onclick="openStation('EF- Carito')">EF- Carito</button>
+  <button class="station-btn" onclick="openStation('EF- Coa')">EF- Coa</button>
+  <button class="station-btn" onclick="openStation('EF- Cot')">EF- Cot</button>
+  <button class="station-btn" onclick="openStation('EF- Santa Bárbara')">EF- Santa Bárbara</button>
 </div>
 
 <!-- Pantalla de detalle -->
@@ -91,67 +91,4 @@ h1 {
 
 <script>
 const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgoCH-86fJPjGAsqOqZrrtktyUNQXLG3xa2QDZlzOGyjEaXb1UM6zIQwpFg0dzTw/pub?gid=1009482522&single=true&output=csv";
-
-let allRows = [];
-
-/* Cargar CSV */
-async function loadCSV() {
-  const res = await fetch(CSV_URL);
-  const text = await res.text();
-
-  const rows = text.split("\n").map(r => r.split(","));
-  const headers = rows[0];
-
-  allRows = rows.slice(1).map(r => {
-    let obj = {};
-    headers.forEach((h, i) => {
-      obj[h.trim()] = r[i] ? r[i].trim() : "";
-    });
-    return obj;
-  });
-}
-
-loadCSV();
-
-/* Abrir estación */
-function openStation(estacion) {
-  document.getElementById("home").style.display = "none";
-  document.getElementById("detail").style.display = "block";
-
-  document.getElementById("station-title").innerText = "Estación " + estacion;
-
-  const filtered = allRows.filter(r => r["Instalación"] === estacion);
-
-  let html = "";
-
-  filtered.forEach(row => {
-    html += `
-      <div class="data-box">
-        <strong>TAG:</strong> ${row["TAG"]}<br>
-        <strong>SIZE:</strong> ${row["SIZE"]}<br>
-        <strong>PSI:</strong> ${row["PSI"]}<br>
-        <strong>Evaluación:</strong> ${row["EVALUACION"]}<br>
-        <strong>Bypass:</strong> ${row["BYPASS"]}<br>
-        <strong>Toma Muestra:</strong> ${row["TOMA MUESTRA"]}<br>
-        <strong>Ultrasonido:</strong> ${row["ULTRASONIDO"]}<br>
-        <strong>Espesor Tubería:</strong> ${row["ESPESOR TUBERIA"]}<br>
-        <strong>Espesor Placa:</strong> ${row["ESPESOR PLACA"]}<br>
-        <strong>MTTO:</strong> ${row["MTTO"]}<br>
-        <strong>Medición Ultrasonido:</strong> ${row["MEDICION EFECTIVA ULTRASONIDO"]}<br>
-      </div>
-    `;
-  });
-
-  document.getElementById("station-data").innerHTML = html;
-}
-
-/* Volver */
-function goHome() {
-  document.getElementById("detail").style.display = "none";
-  document.getElementById("home").style.display = "block";
-}
-</script>
-
-</body>
-</html>
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgoCH-86fJPjGAsqOqZrrtktyUNQXLG3xa2QDZlzOGyjEaXb1UM
