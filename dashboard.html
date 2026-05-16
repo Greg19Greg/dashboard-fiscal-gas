@@ -54,6 +54,30 @@ h1 {
   cursor: pointer;
 }
 
+/* Tabs internas */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tab-btn.active {
+  background: #0055aa;
+  color: #fff;
+}
+
 .data-box {
   background: white;
   padding: 15px;
@@ -86,6 +110,16 @@ h1 {
 <div id="detail">
   <button class="back-btn" onclick="goHome()">← Volver</button>
   <h2 id="station-title"></h2>
+
+  <!-- Tabs internas por estación -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
+    <button class="tab-btn" onclick="showTab('condiciones')">Condiciones de medición</button>
+    <button class="tab-btn" onclick="showTab('mantenimiento')">Mantenimiento</button>
+    <button class="tab-btn" onclick="showTab('ultrasonido')">Ultrasonido</button>
+  </div>
+
+  <!-- Contenedor donde se cargan los datos según la pestaña -->
   <div id="station-data"></div>
 </div>
 
@@ -94,14 +128,16 @@ const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgoCH-86fJPjGAsqOqZrrtktyUNQXLG3xa2QDZlzOGyjEaXb1UM6zIQwpFg0dzTw/pub?gid=1009482522&single=true&output=csv";
 
 let allRows = [];
+let currentStationRows = []; // filas de la estación seleccionada
+let currentTab = "resumen";
 
-/* Normalizador para evitar errores por acentos, espacios o guiones */
+/* Normalizador básico */
 function normalize(str) {
   return str
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")   // quita acentos
-    .replace(/-/g, "")                 // quita guiones
-    .replace(/\s+/g, " ")              // normaliza espacios
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/-/g, "")
+    .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
@@ -125,51 +161,93 @@ async function loadCSV() {
 
 loadCSV();
 
-/* Abrir estación */
+/* Abrir estación (pantalla 2) */
 function openStation(estacion) {
   document.getElementById("home").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
   document.getElementById("station-title").innerText = estacion;
+  currentTab = "resumen";
 
-  const filtered = allRows.filter(r =>
+  // activar primer tab visualmente
+  setActiveTabButton("resumen");
+
+  // filtrar filas de esa estación
+  currentStationRows = allRows.filter(r =>
     r["Instalación"] &&
     normalize(r["Instalación"]) === normalize(estacion)
   );
 
+  renderCurrentTab();
+}
+
+/* Cambiar de pestaña interna */
+function showTab(tabName) {
+  currentTab = tabName;
+  setActiveTabButton(tabName);
+  renderCurrentTab();
+}
+
+/* Marcar botón activo */
+function setActiveTabButton(tabName) {
+  const buttons = document.querySelectorAll(".tab-btn");
+  buttons.forEach(btn => btn.classList.remove("active"));
+
+  if (tabName === "resumen") buttons[0].classList.add("active");
+  if (tabName === "condiciones") buttons[1].classList.add("active");
+  if (tabName === "mantenimiento") buttons[2].classList.add("active");
+  if (tabName === "ultrasonido") buttons[3].classList.add("active");
+}
+
+/* Renderizar contenido según pestaña */
+function renderCurrentTab() {
+  const container = document.getElementById("station-data");
   let html = "";
 
-  if (filtered.length === 0) {
-    html = `<p>No se encontraron datos para esta estación.</p>`;
-  } else {
-    filtered.forEach(row => {
+  if (!currentStationRows || currentStationRows.length === 0) {
+    container.innerHTML = "<p>No se encontraron datos para esta estación.</p>";
+    return;
+  }
+
+  // Por ahora asumo una fila por estación; si hay más, se listan todas
+  currentStationRows.forEach(row => {
+    if (currentTab === "resumen") {
       html += `
         <div class="data-box">
+          <strong>Instalación:</strong> ${row["Instalación"]}<br>
           <strong>TAG:</strong> ${row["TAG"]}<br>
           <strong>SIZE:</strong> ${row["SIZE"]}<br>
           <strong>PSI:</strong> ${row["PSI"]}<br>
           <strong>Evaluación:</strong> ${row["EVALUACION"]}<br>
+        </div>
+      `;
+    }
+
+    if (currentTab === "condiciones") {
+      html += `
+        <div class="data-box">
+          <strong>Instalación:</strong> ${row["Instalación"]}<br>
+          <strong>TAG:</strong> ${row["TAG"]}<br>
           <strong>Bypass:</strong> ${row["BYPASS"]}<br>
           <strong>Toma Muestra:</strong> ${row["TOMA MUESTRA"]}<br>
-          <strong>Ultrasonido:</strong> ${row["ULTRASONIDO"]}<br>
+        </div>
+      `;
+    }
+
+    if (currentTab === "mantenimiento") {
+      html += `
+        <div class="data-box">
+          <strong>Instalación:</strong> ${row["Instalación"]}<br>
           <strong>Espesor Tubería:</strong> ${row["ESPESOR TUBERIA"]}<br>
           <strong>Espesor Placa:</strong> ${row["ESPESOR PLACA"]}<br>
           <strong>MTTO:</strong> ${row["MTTO"]}<br>
-          <strong>Medición Ultrasonido:</strong> ${row["MEDICION EFECTIVA ULTRASONIDO"]}<br>
         </div>
       `;
-    });
-  }
+    }
 
-  document.getElementById("station-data").innerHTML = html;
-}
-
-/* Volver */
-function goHome() {
-  document.getElementById("detail").style.display = "none";
-  document.getElementById("home").style.display = "block";
-}
-</script>
-
-</body>
-</html>
+    if (currentTab === "ultrasonido") {
+      html += `
+        <div class="data-box">
+          <strong>Instalación:</strong> ${row["Instalación"]}<br>
+          <strong>Ultrasonido:</strong> ${row["ULTRASONIDO"]}<br>
+          <strong>Medición Ultrasonido:</strong>
